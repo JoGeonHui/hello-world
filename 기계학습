@@ -1,0 +1,138 @@
+import tensorflow as tf
+import numpy as np
+x_data = np.array([[0,0],[0,1],[1,0],[1,1]],dtype=np.float32)
+y_data = np.array([[[0],[1],[1],[0]]],dtype=np.float32)
+
+#tensorflow를 통한 계산을 위한 공간을 만듬 , 이를 위한 placeholder
+X = tf.placeholder(tf.float32)
+Y = tf.placeholder(tf.float32)
+
+#Weight값과 bias값은 최초 랜덤으로 생성하여 학습을 진행함
+W = tf.Variable(tf.random_normal([2,1]),name='weight')# [2 input,1 out]
+b = tf.Variable(tf.random_normal([1]),name='bias')# bias는 out의 차원을 따라감
+
+#가설 , 데이터를 통해 ~~~한 결과가 나올것이다를 계산 : 행렬곱+bias
+#tf.matmul : 행렬곱 
+hypothesis = tf.sigmoid(tf.matmul(X,W)+b)#sigmoid : 0.5미만 0.5초과 1
+#cost를 계산하기 위해 평균함수 reduce_mean을 통해 이하 계산식을 진행
+cost = -tf.reduce_mean(Y*tf.log(hypothesis)+(1-Y)*tf.log(1-hypothesis))
+#학습
+train = tf.train.GradientDescentOptimizer(learning_rate=0.1).minimize(cost)
+#learning_rate 는 사용자가 조절 가능 ,tf.minimize(ocst) cost의 최소값
+
+#학습된 데이터
+predicted = tf.cast(hypothesis > 0.5, dtype=tf.float32)
+#정확도
+accuracy = tf.reduce_mean(tf.cast(tf.equal(predicted,Y),dtype=tf.float32))
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    
+    for step in range(10000):
+        sess.run(train, feed_dict={X: x_data, Y: y_data})
+        if step % 100 == 0:
+            print(step ,"step : ",sess.run(cost,feed_dict={X: x_data, Y: y_data}),sess.run(W))
+    h,c,a = sess.run([hypothesis,predicted,accuracy],feed_dict={X:x_data,Y:y_data})
+    print("\nHypothesis:\n",h,"\nPredicted:\n",c,"\nAccuracy:\n",a)
+    
+    import tensorflow as tf
+import numpy as np
+x_data = np.array([[0,0],[0,1],[1,0],[1,1]],dtype=np.float32)
+y_data = np.array([[[0],[1],[1],[0]]],dtype=np.float32)
+
+X = tf.placeholder(tf.float32)
+Y = tf.placeholder(tf.float32)
+W1 = tf.Variable(tf.random_normal([2,2]),name='weight1')# [2 input,1 out]
+b1 = tf.Variable(tf.random_normal([2]),name='bias1')#bias = out
+layer1 = tf.sigmoid(tf.matmul(X,W1)+b1)
+
+W2 = tf.Variable(tf.random_normal([2,1]),name='weight2')# [2 input,1 out]
+b2 = tf.Variable(tf.random_normal([1]),name='bias2')#bias2
+hypothesis = tf.sigmoid(tf.matmul(layer1,W2)+b2)#앞에서 계산한 값 Layer1을 연결해서 계산되어진 가설
+
+cost = -tf.reduce_mean(Y*tf.log(hypothesis)+(1-Y)*tf.log(1-hypothesis))
+train = tf.train.GradientDescentOptimizer(learning_rate=0.1).minimize(cost)
+
+predicted = tf.cast(hypothesis > 0.5, dtype=tf.float32)
+accuracy = tf.reduce_mean(tf.cast(tf.equal(predicted,Y),dtype=tf.float32))
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    
+    for step in range(10000):
+        sess.run(train, feed_dict={X: x_data, Y: y_data})
+        if step % 100 == 0:
+            print(step,"step : ",sess.run(cost,feed_dict={X: x_data, Y: y_data}),sess.run(W))
+    h,c,a = sess.run([hypothesis,predicted,accuracy],feed_dict={X:x_data,Y:y_data})
+    print("\nHypothesis:\n",h,"\nPredicted:\n",c,"\nAccuracy:\n",a)
+    
+    import tensorflow as tf
+import numpy as np
+x_data = np.array([[0,0],[0,1],[1,0],[1,1]],dtype=np.float32)
+y_data = np.array([[[0],[1],[1],[0]]],dtype=np.float32)
+
+X = tf.placeholder(tf.float32)
+Y = tf.placeholder(tf.float32)
+
+W1 = tf.Variable(tf.random_normal([2,10]),name='weight1')# [2 input,10 out]
+b1 = tf.Variable(tf.random_normal([10]),name='bias1')#bias = out
+layer1 = tf.sigmoid(tf.matmul(X,W1)+b1)
+
+W2 = tf.Variable(tf.random_normal([10,1]),name='weight2')# [10 input,1 out]
+b2 = tf.Variable(tf.random_normal([1]),name='bias2')
+hypothesis = tf.sigmoid(tf.matmul(layer1,W2)+b2)#앞에서 계산한 값 Layer1을 연결해서 계산
+
+cost = -tf.reduce_mean(Y*tf.log(hypothesis)+(1-Y)*tf.log(1-hypothesis))
+train = tf.train.GradientDescentOptimizer(learning_rate=0.1).minimize(cost)
+
+predicted = tf.cast(hypothesis > 0.5, dtype=tf.float32)
+accuracy = tf.reduce_mean(tf.cast(tf.equal(predicted,Y),dtype=tf.float32))
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    
+    for step in range(10000):
+        sess.run(train, feed_dict={X: x_data, Y: y_data})
+        if step % 100 == 0:
+            print(step ,"step : ",sess.run(cost,feed_dict={X: x_data, Y: y_data}),sess.run(W))
+    h,c,a = sess.run([hypothesis,predicted,accuracy],feed_dict={X:x_data,Y:y_data})
+    print("\nHypothesis:\n",h,"\nPredicted:\n",c,"\nAccuracy:\n",a)
+    
+    import tensorflow as tf
+import numpy as np
+x_data = np.array([[0,0],[0,1],[1,0],[1,1]],dtype=np.float32)
+y_data = np.array([[[0],[1],[1],[0]]],dtype=np.float32)
+
+X = tf.placeholder(tf.float32)
+Y = tf.placeholder(tf.float32)
+
+W1 = tf.Variable(tf.random_normal([2,15]),name='weight1')# [2 input,15 out]
+b1 = tf.Variable(tf.random_normal([15]),name='bias1')#bias = out
+layer1 = tf.sigmoid(tf.matmul(X,W1)+b1)
+
+W2 = tf.Variable(tf.random_normal([15,5]),name='weight2')# [15 input,5 out]
+b2 = tf.Variable(tf.random_normal([5]),name='bias2')#bias2 
+layer2 = tf.sigmoid(tf.matmul(layer1,W2)+b2)#앞에서 계산한 값 Layer1을 연결해서 계산
+
+#W2,b2 를 통해 계산된 layer2를 이용해 최종 hypothesis를 계산
+W3 = tf.Variable(tf.random_normal([15,1]),name='weight3')# [15 input,1 out]
+b3 = tf.Variable(tf.random_normal([1]),name='bias3')#end_bias
+hypothesis = tf.sigmoid(tf.matmul(layer1,W2)+b2)#앞에서 계산한 값 Layer1을 연결해서 계산
+
+cost = -tf.reduce_mean(Y*tf.log(hypothesis)+(1-Y)*tf.log(1-hypothesis))
+train = tf.train.GradientDescentOptimizer(learning_rate=0.1).minimize(cost)
+
+#학습된 데이터
+predicted = tf.cast(hypothesis > 0.5, dtype=tf.float32)
+#정확도
+accuracy = tf.reduce_mean(tf.cast(tf.equal(predicted,Y),dtype=tf.float32))
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    
+    for step in range(10000):
+        sess.run(train, feed_dict={X: x_data, Y: y_data})
+        if step % 100 == 0:
+            print(step ,"step : ",sess.run(cost,feed_dict={X: x_data, Y: y_data}),sess.run(W))
+    h,c,a = sess.run([hypothesis,predicted,accuracy],feed_dict={X:x_data,Y:y_data})
+    print("\nHypothesis:\n",h,"\nPredicted:\n",c,"\nAccuracy:\n",a)
