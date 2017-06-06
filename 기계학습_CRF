@@ -1,0 +1,145 @@
+def word2features(sentence, i):
+    word = sentence[i]
+    features = {}
+    if(i == 0):
+        features = {
+            'word' : sentence[i],
+            '+1word' : sentence[i+1],
+            '+2word' : sentence[i+2]
+        }
+    elif(i==1):
+        features = {
+            '-1word' : sentence[i-1],
+            'word' : sentence[i],
+            '+1word' : sentence[i+1],
+            '+2word' : sentence[i+2] 
+        }
+    elif(i == len(sentence)-1):
+        features = {
+            '-2word' : sentence[i-2],
+            '-1word' : sentence[i-1],
+            'word' : sentence[i],
+        }
+    elif(i == len(sentence)-2):
+        features = {
+            '-2word' : sentence[i-2],
+            '-1word' : sentence[i-1],
+            'word' : sentence[i],
+            '+1word' : sentence[i+1]
+        }
+    else:
+        features = {
+            '-2word' : sentence[i-2],
+            '-1word' : sentence[i-1],
+            'word' : sentence[i],
+            '+1word' : sentence[i+1],
+            '+2word' : sentence[i+2]
+        }
+    return features
+
+def sentence2features(sentence):
+    return [ word2features(sentence, i) for i in range(len(sentence))]
+    
+    import codecs
+
+f = codecs.open('train_corp.txt',"r",encoding="utf-8")
+X_data=[]
+y_data=[]
+for line in f:
+    value = []
+    label = []
+    for word in line.split(' '):
+        value.append(word[0])
+        label.append(word[-1])
+    X_data.append(value)
+    y_data.append(label)
+
+X_train=[]
+
+for i in range(len(X_data)):
+    X_train.append(sentence2features(X_data[i]))
+    
+    # pip install sklearn-crfsuite
+
+import sklearn_crfsuite
+from sklearn_crfsuite import scorers
+from sklearn_crfsuite import metrics
+
+crf = sklearn_crfsuite.CRF(max_iterations=100)
+crf.fit(X_train, y_data)
+
+f = codecs.open('test_corp.txt',"r",encoding="utf-8")
+X_data=[]
+y_test=[]
+for line in f:
+    value = []
+    label = []
+    for word in line.split(' '):
+        value.append(word[0])
+        label.append(word[-1])
+    X_data.append(value)
+    y_test.append(label)
+
+X_test_train=[]
+
+for i in range(len(X_data)):
+    X_test_train.append(sentence2features(X_data[i]))
+    
+    labels = ['B','I',' ']
+y_pred = crf.predict(X_test_train)
+print(y_pred[0])
+metrics.flat_f1_score(y_test, y_pred, average='weighted', labels=labels)
+
+def auto_space(sentence):
+    feat_list = []
+    for i in range(len(sentence)):
+        word = sentence[i]
+        features = {}
+        if(i == 0):
+            features = {
+                'word' : sentence[i],
+                '+1word' : sentence[i+1],
+                '+2word' : sentence[i+2]
+            }
+        elif(i==1):
+            features = {
+                '-1word' : sentence[i-1],
+                'word' : sentence[i],
+                '+1word' : sentence[i+1],
+                '+2word' : sentence[i+2] 
+            }
+        elif(i == len(sentence)-1):
+            features = {
+                '-2word' : sentence[i-2],
+                '-1word' : sentence[i-1],
+                'word' : sentence[i],
+            }
+        elif(i == len(sentence)-2):
+            features = {
+                '-2word' : sentence[i-2],
+                '-1word' : sentence[i-1],
+                'word' : sentence[i],
+                '+1word' : sentence[i+1]
+            }
+        else:
+            features = {
+                '-2word' : sentence[i-2],
+                '-1word' : sentence[i-1],
+                'word' : sentence[i],
+                '+1word' : sentence[i+1],
+                '+2word' : sentence[i+2]
+            }
+        feat_list.append(features)
+    y_pred = crf.predict([feat_list])
+    print(y_pred)
+    auto_result = ''
+    for i in range(len(sentence)):
+        if(y_pred[0][i] == 'B'):
+            auto_result = auto_result+' '+sentence[i]
+        else:
+            auto_result = auto_result + sentence[i]
+    
+    print(auto_result)
+auto_space('자질이부족합니다.')
+auto_space('띄어쓰기가완벽하지는않네요')
+auto_space('우리집고양이는아기고양이')
