@@ -1,0 +1,105 @@
+f = open('SMSSpamCollection')
+target = []
+data = []
+dic = {}
+
+for line in f:
+    line = line.strip()
+    split_word = line.split('\t')
+    
+    if(split_word[0] == 'ham'):
+        target.append([0])
+    else:
+        target.append([1])
+    
+    words = split_word[1].lower()
+    data.append(words)
+    for word in words.split(' '):
+        if(word not in dic):
+            dic[word] = 1
+        else:
+            dic[word] = dic[word]+1
+
+import operator
+Sorted_dic = sorted(dic.items(),key=operator.itemgetter(1),reverse = True)
+
+Cut_dic = Sorted_dic[50:]
+
+import numpy as np 
+
+dic2 = {}
+
+for doc_count in range(len(data)):
+    for word in data[doc_count].split(' '):
+        for i in range(len(Cut_dic)):
+            if word==Cut_dic[i][0]:
+                if (doc_count,i) not in dic2:
+                    dic2[(doc_count,i)]  = 1
+                else:
+                    dic2[(doc_count,i)]  = dic2[(doc_count,i)] +1
+                    
+X = []
+
+for i in range(len(data)):
+    value=[]
+    for j in range(len(Cut_dic)):
+        if (i,j) in dic2:
+            value.append(int(dic2[(i,j)]))
+        else:
+            value.append(0)
+    X.append(value)
+print(np.shape(X))
+#print(X)
+#print(target)
+#x_data -> line count?
+#y_data -> ham or spam
+
+import tensorflow as tf
+
+x_data = np.array(X,dtype = np.float32)
+y_data = np.array(target,dtype = np.float32)
+
+#tensorflow를 통한 계산을 위한 공간을 만듬 , 이를 위한 placeholder
+X = tf.placeholder(tf.float32)
+Y = tf.placeholder(tf.float32)
+
+#Weight값과 bias값은 최초 랜덤으로 생성하여 학습을 진행함
+W = tf.Variable(tf.random_normal([5866,1000]),name='weight')# [2 input,15 out]
+b = tf.Variable(tf.random_normal([1000]),name='bias')#bias = out
+layer = tf.sigmoid(tf.matmul(X,W)+b)
+
+W1 = tf.Variable(tf.random_normal([1000,500]),name='weight1')# [2 input,15 out]
+b1 = tf.Variable(tf.random_normal([500]),name='bias1')#bias = out
+layer1 = tf.sigmoid(tf.matmul(layer,W1)+b1)
+
+W2 = tf.Variable(tf.random_normal([500,100]),name='weight2')# [15 input,5 out]
+b2 = tf.Variable(tf.random_normal([100]),name='bias2')#bias2 
+layer2 = tf.sigmoid(tf.matmul(layer1,W2)+b2)#앞에서 계산한 값 Layer1을 연결해서 계산
+
+#W2,b2 를 통해 계산된 layer2를 이용해 최종 hypothesis를 계산
+W3 = tf.Variable(tf.random_normal([100,1]),name='weight3')# [15 input,1 out]
+b3 = tf.Variable(tf.random_normal([1]),name='bias3')#end_bias
+
+#가설 , 데이터를 통해 ~~~한 결과가 나올것이다를 계산 : 행렬곱+bias
+#tf.matmul : 행렬곱 
+hypothesis = tf.sigmoid(tf.matmul(layer2,W3)+b3)#sigmoid : 0.5미만 0.5초과 1
+#cost를 계산하기 위해 평균함수 reduce_mean을 통해 이하 계산식을 진행
+cost = -tf.reduce_mean(Y*tf.log(hypothesis)+(1-Y)*tf.log(1-hypothesis))
+#학습
+train = tf.train.GradientDescentOptimizer(learning_rate=0.001).minimize(cost)
+#learning_rate 는 사용자가 조절 가능 ,tf.minimize(ocst) cost의 최소값
+
+#학습된 데이터
+predicted = tf.cast(hypothesis > 0.5, dtype=tf.float32)
+#정확도
+accuracy = tf.reduce_mean(tf.cast(tf.equal(predicted,Y),dtype=tf.float32))
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    
+    for step in range(1000):
+        sess.run(train, feed_dict={X: x_data, Y: y_data})
+        if step % 10 == 0:
+            print(step,"step : \n",sess.run(cost,feed_dict={X: x_data, Y: y_data}),sess.run(W))
+    h,c,a = sess.run([hypothesis,predicted,accuracy],feed_dict={X:x_data,Y:y_data})
+    print("\nPredicted:\n",c)
