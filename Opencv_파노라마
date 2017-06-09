@@ -1,0 +1,95 @@
+#include "opencv2/features2d.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/xfeatures2d.hpp"
+#include "opencv2/core.hpp"
+#include <iostream>
+
+#include "opencv2/calib3d/calib3d.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
+using namespace cv;
+using namespace std;
+using namespace cv::xfeatures2d;
+
+int main(void)
+{
+	Mat img_1 = imread("florence-1.bmp", IMREAD_GRAYSCALE);
+	Mat img_2 = imread("florence-2.bmp", IMREAD_GRAYSCALE);
+
+	if (!img_1.data || !img_2.data)
+		return -1;
+
+	int minHessian = 400;
+
+	Ptr<SURF> detector = SURF::create();
+	detector->setHessianThreshold(minHessian);
+	vector<KeyPoint> keypoints_1, keypoints_2;
+	Mat descriptors_1, descriptors_2;
+	detector->detectAndCompute(img_1, Mat(), keypoints_1, descriptors_1);
+	detector->detectAndCompute(img_2, Mat(), keypoints_2, descriptors_2);
+
+	FlannBasedMatcher matcher;
+	vector<DMatch>matches;
+	matcher.match(descriptors_1, descriptors_2, matches);
+	double max_dist = 0; double min_dist = 100;
+
+	for (int i = 0; i < descriptors_1.rows; i++){
+		double dist = matches[1].distance;
+		if (dist < min_dist)
+			min_dist = dist;
+		if (dist > max_dist)max_dist = dist;
+
+	}
+
+	cout << "--Max dist : " << max_dist << endl;
+	cout << "--Min dist : " << min_dist << endl;
+
+	std::vector< DMatch >  good_matches;
+	for (int i = 0; i < descriptors_1.rows; i++){
+		if (matches[i].distance <= max(2 * min_dist, 0.02)){
+			good_matches.push_back(matches[i]);
+		}
+	}
+	//파노라마 이미지 만들기
+	//지난주와 차이는 잘못된 RANSAC알고리즘에 대한 구별여부
+	// 두 이미지에서 매칭이 잘 된 특징점을 가져옴.
+
+	vector<Point2f>img1_points;
+	vector<Point2f>img2_points;
+
+	for(int i=0;i<good_matches.size();i++){
+		//queryIdx : img1의 keypoint index
+		//trainIdx : img2의 keypoint index
+		img1_points.push_back(keypoints_1[good_matches[i].queryIdx].pt);							img2_points.push_back(keypoints_2[good_matches[i].trainIdx].pt);
+	}
+	if(img1_points.size()>=20)
+	{
+		Mat H = findHomography(img2_points,img1_points,CV_RANSAC,5.0);
+
+		//img2를 변환행렬 h를 이용하여 변환한 결과를 result에 저장
+		//이때 전체 result의 사이즈는 Size(img_1.cols+img_2.cols,img_2.rows)
+		Mat result;
+
+		warpPerspective(img_2,result,H,cv::Size(img_1.cols+img_2.cols,img_2.rows));
+		imshow("img2_H_result",result);
+		waitKey(0);
+
+		//img_1의 값을 half에 복사
+		Mat half(result,cv::Rect(0,0,img_1.cols,img_1.rows));
+		imshow("half",half);
+		waitKey(0);
+
+		img_1.copyTo(half);
+		imshow("after_copy_half",half);
+		waitKey(0);
+		
+		//최종 파노라마
+
+		imshow("result",result);
+		waitKey(0);
+
+	}
+
+	return 0;
+}
