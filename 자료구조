@@ -1,0 +1,79 @@
+package week1;
+
+class Date {
+	private int year;
+	private int month;
+	private int day;
+	public Date(int year, int month, int day) {
+		this.year = year;
+		this.month = month;
+		this.day = day;
+	}
+	public Date() {
+		this(0, 0, 0);
+	}
+	
+	public String toString() {
+		return year + "/" + month + "/" + day + " ";
+	}
+	///////////////  구현해야 할 메소드 //////////
+	// 주어진 날짜와 비교할 날짜 newDate를 비교하여 주어진 날짜가 앞서면 -1, 
+// 뒤서면 1, 같으면 0를 반환한다.
+	public int compareTo(Date newDate) {
+		if(year > newDate.year){
+			return 1;
+		}
+		else if(year < newDate.year){
+			return -1;
+		}
+		else{
+			if(month > newDate.month)
+				return 1;
+			else if(month < newDate.month)
+				return -1;
+			else{
+				if(day > newDate.day)
+					return 1;
+				else if(day < newDate.day)
+					return -1;
+				else
+					return 0;
+			}
+		}
+		
+	}
+}
+
+package week1;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class study2 {
+	public static void main(String args[]) throws IOException{
+		BufferedReader br = new BufferedReader(new FileReader("C:/Users/ssd_user/workspace/geonhui/src/week1/input1.txt"));
+		
+		while(true){
+			String line = br.readLine();
+			if(line == null)
+				break;
+			String[] temp = line.split("\t");
+			String[] cale1 = temp[0].split(" ");
+			String[] cale2 = temp[1].split(" ");
+						
+			Date date1 = new Date(Integer.parseInt(cale1[0]),Integer.parseInt(cale1[1]),Integer.parseInt(cale1[2]));
+			Date date2 = new Date(Integer.parseInt(cale2[0]),Integer.parseInt(cale2[1]),Integer.parseInt(cale2[2]));
+			
+			if(date1.compareTo(date2) == 1)
+				System.out.println(date1.toString()+" > "+ date2.toString());
+			else if(date1.compareTo(date2) == -1)
+				System.out.println(date1.toString()+" < "+ date2.toString());
+			else{
+				System.out.println(date1.toString()+" = "+ date2.toString());
+			}
+		}	
+	}	
+	
+}
+
