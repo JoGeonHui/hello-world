@@ -1,0 +1,140 @@
+#include "opencv2\opencv.hpp"
+
+using namespace std;
+using namespace cv;
+
+uchar limit(int pixel){
+	if(pixel>255)
+		return 255;
+	else
+		return pixel;
+}
+
+
+//================1번=================
+
+int main(void){
+	Mat inputimg = imread("lena.bmp",IMREAD_COLOR);
+	Mat output(Size(inputimg.rows,inputimg.cols), CV_8UC3);
+	
+	if(inputimg.empty())
+		return -1;
+
+	int hist_B[256] = {0,};
+	int hist_G[256] = {0,};
+	int hist_R[256] = {0,};
+
+	//밝기 100추가
+	for(int i=0;i<inputimg.rows;i++){
+		for(int j=0;j<inputimg.cols;j++){
+			output.at<Vec3b>(i,j)[0] = limit(inputimg.at<Vec3b>(i,j)[0]+100);//b
+			output.at<Vec3b>(i,j)[1] = limit(inputimg.at<Vec3b>(i,j)[1]+100);//g
+			output.at<Vec3b>(i,j)[2] = limit(inputimg.at<Vec3b>(i,j)[2]+100);//r
+				
+		}
+
+	}
+	//밝기 100을 이용해 히스토그램 작성
+	for(int i=0;i<output.rows;i++){
+		for(int j=0;j<output.cols;j++){
+			output.at<Vec3b>(i,j)[0] = hist_B[limit(output.at<Vec3b>(i,j)[0])]++;
+			output.at<Vec3b>(i,j)[1] = hist_G[limit(output.at<Vec3b>(i,j)[1])]++;
+			output.at<Vec3b>(i,j)[2] = hist_R[limit(output.at<Vec3b>(i,j)[2])]++;
+			
+		}
+	}
+	
+	//=====================히스토그램 출력용=====================
+	Mat result_Hist_B(512,512,CV_8U,Scalar(255));
+	Mat result_Hist_G(512,512,CV_8U,Scalar(255));
+	Mat result_Hist_R(512,512,CV_8U,Scalar(255));
+	
+	int maxB = -1;
+	for(int i=0;i<256;i++)
+		if (maxB<hist_B[i]) maxB= hist_B[i];
+	
+	int maxG = -1;
+	for(int i=0;i<256;i++)
+		if (maxG<hist_G[i]) maxG= hist_G[i];
+
+	int maxR = -1;
+	for(int i=0;i<256;i++)
+		if (maxR<hist_R[i]) maxR= hist_R[i];
+
+	int LT_x,LT_y,RB_x,RB_y;
+	int setHeight;
+	for(int j=0; j<result_Hist_B.cols; j+=2){
+			
+		setHeight = result_Hist_B.rows*hist_B[j/2]/(float)maxB;
+		LT_x = (result_Hist_B.rows)-setHeight;
+		LT_y = j;
+		RB_x = result_Hist_B.rows-1;
+		RB_y = j +2;
+		rectangle(result_Hist_B,Point(LT_y,LT_x),Point(RB_y,RB_x), Scalar(0),-1);
+
+		setHeight = result_Hist_G.rows*hist_G[j/2]/(float)maxG;
+		LT_x = (result_Hist_G.rows)-setHeight;
+		LT_y = j;
+		RB_x = result_Hist_G.rows-1;
+		RB_y = j +2;
+		rectangle(result_Hist_G,Point(LT_y,LT_x),Point(RB_y,RB_x), Scalar(0),-1);
+
+		setHeight = result_Hist_R.rows*hist_R[j/2]/(float)maxR;
+		LT_x = (result_Hist_R.rows-1)-setHeight;
+		LT_y = j;
+		RB_x = result_Hist_R.rows-1;
+		RB_y = j +2;
+		rectangle(result_Hist_R,Point(LT_y,LT_x),Point(RB_y,RB_x), Scalar(0),-1);
+	}
+	//==========================================================================
+	
+
+
+		imshow("ori",inputimg);
+		imshow("R",result_Hist_R);
+		imshow("G",result_Hist_G);
+		imshow("B",result_Hist_B);
+
+		waitKey(0);
+		return 0;
+	
+}
+
+
+/*
+int main(void){
+
+	Mat inputimg = imread("gray_bridge.bmp",IMREAD_GRAYSCALE);
+	Mat output(Size(inputimg.rows,inputimg.cols), CV_8UC1);
+
+	if(inputimg.empty())
+		return -1;
+	
+	int hist_all[256] = {0,};
+	
+	Mat result_Hist_All(512,512,CV_8U,Scalar(255));
+
+	int maxA = -1;
+	for(int i=0;i<256;i++)
+		if (maxA<hist_all[i]) maxA= hist_all[i];
+
+	int LT_x,LT_y,RB_x,RB_y;
+	int setHeight;
+	for(int j=0; j<result_Hist_All.cols; j+=2){
+		setHeight = result_Hist_All.rows*hist_all[j/2]/(float)maxA;
+		LT_x = (result_Hist_All.rows)-setHeight;
+		LT_y = j;
+		RB_x = result_Hist_All.rows-1;
+		RB_y = j +2;
+		rectangle(result_Hist_All,Point(LT_y,LT_x),Point(RB_y,RB_x), Scalar(0),-1);
+
+	}
+	
+	imshow("ori",inputimg);
+	imshow("chchch",output);
+	imshow("ori_hist",result_Hist_All);
+	waitKey(0);
+
+	return 0;
+}
+*/
