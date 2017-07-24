@@ -1,0 +1,23 @@
+package study;
+
+import java.util.Scanner;
+
+public class judge_2439 {
+	public static void main(String arg[]){
+		Scanner scan = new Scanner(System.in);
+		
+		int num = scan.nextInt();
+		int line = 0;
+		for(int i=0;i<num;i++){
+			line = line + 1;
+			for(int j=0;j<num;j++){
+				if(j<num-line)
+					System.out.print(" ");
+				if(j>=num-line)
+					System.out.print("*");
+			}
+			System.out.println();
+		}
+		
+	}
+}
